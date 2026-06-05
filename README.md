@@ -117,6 +117,71 @@ El OCP es fundamental para construir sistemas mantenibles a largo plazo, especia
 
 ---
 
+### L - Liskov Substitution Principle (LSP)
+
+#### Definición
+"Las clases derivadas deben ser sustituibles por sus clases base sin alterar el comportamiento del programa."
+
+El LSP asegura que el uso de una clase hija en lugar de su clase padre no rompa la lógica o cause errores inesperados.
+
+#### Problema Identificado
+La clase base `Animal` definía un método `walk()` que todas las subclases heredaban. Sin embargo, `Fish` no puede caminar, lo que generaba una excepción en tiempo de ejecución:
+
+```java
+class Fish extends Animal {
+    @Override
+    public void walk() {
+        throw new UnsupportedOperationException("Fish can't walk.");
+    }
+}
+```
+
+Esto viola el LSP porque `Fish` no es sustituible por `Animal` sin alterar el comportamiento del programa. El contrato implícito de `Animal.walk()` no se cumple para todas las subclases.
+
+#### Solución Implementada
+Rediseñamos la jerarquía separando los comportamientos en interfaces independientes:
+
+**Antes (viola LSP):**
+```
+Animal
+├── makeSound()
+└── walk()
+    ├── Dog → funciona
+    └── Fish → lanza excepción (rompe LSP)
+```
+
+**Después (cumple LSP):**
+```
+AnimalRefactored (abstracta)
+└── makeSound()
+
+Walkable (interfaz)
+├── DogRefactored  → camina y nada
+└── BirdRefactored → camina, no nada
+
+Swimmable (interfaz)
+├── DogRefactored  → camina y nada
+└── FishRefactored → nada, no camina
+```
+
+#### Beneficios Obtenidos
+1. **Sustituibilidad garantizada**: Cada subclase cumple completamente el contrato de su clase base o interfaz
+2. **Sin excepciones en tiempo de ejecución**: No hay métodos que lancen `UnsupportedOperationException`
+3. **Composición flexible**: Las clases implementan solo las interfaces que tienen sentido para ellas
+4. **Polimorfismo seguro**: Los arrays de `Walkable` o `Swimmable` solo contienen animales que realmente pueden realizar esa acción
+5. **Extensibilidad**: Nuevos animales pueden implementar las combinaciones de interfaces que necesiten
+
+#### Reflexión
+El LSP nos obliga a pensar cuidadosamente en los contratos de nuestras abstracciones. El problema fundamental no era técnico sino de diseño: habíamos asumido que "todos los animales caminan", lo cual es falso.
+
+La solución no fue forzar a `Fish` a implementar `walk()` de alguna manera artificial, sino replantear la abstracción. En lugar de una jerarquía rígida, usamos interfaces de comportamiento (`Walkable`, `Swimmable`) que cada animal implementa según sus capacidades reales.
+
+Este principio está estrechamente relacionado con el diseño por contrato: si una clase base establece un contrato (como `walk()`), todas las subclases deben cumplirlo. Si no pueden, la abstracción está mal diseñada.
+
+El LSP es esencial para construir jerarquías de clases robustas donde el polimorfismo funcione de manera predecible y segura.
+
+---
+
 ## Comandos de Ejecución y Pruebas
 
 ### Compilación
@@ -154,6 +219,20 @@ mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.ocp.
 mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.ocp.MainRefactored"
 ```
 *Nota: Fax funciona correctamente sin haber modificado código existente.*
+
+### Principio LSP (Liskov Substitution Principle)
+
+**Código inicial (viola LSP):**
+```bash
+mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.lsp.Main"
+```
+*Nota: Este código lanza una excepción `UnsupportedOperationException` cuando se intenta que un pez camine.*
+
+**Código refactorizado (cumple LSP):**
+```bash
+mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.lsp.MainRefactored"
+```
+*Nota: Todos los animales funcionan correctamente sin excepciones. Perro camina y nada, pez solo nada, pájaro solo camina.*
 
 ---
 
