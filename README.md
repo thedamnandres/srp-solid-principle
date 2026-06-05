@@ -248,6 +248,67 @@ El ISP es esencial para construir sistemas flexibles donde las interfaces sean m
 
 ---
 
+### D - Dependency Inversion Principle (DIP)
+
+#### Definición
+"Los módulos de alto nivel no deben depender de módulos de bajo nivel. Ambos deben depender de abstracciones."
+"Las abstracciones no deben depender de detalles. Los detalles deben depender de abstracciones."
+
+El DIP promueve la reducción del acoplamiento entre módulos, asegurando que las clases de alto nivel dependan de abstracciones (interfaces) y no de implementaciones concretas.
+
+#### Problema Identificado
+La clase `PaymentProcessor` dependía directamente de una implementación concreta `CreditCardPayment`, lo que impedía agregar nuevos métodos de pago sin modificar el código existente:
+
+```java
+class PaymentProcessor {
+    private CreditCardPayment payment;
+
+    public PaymentProcessor() {
+        this.payment = new CreditCardPayment(); // Dependencia directa
+    }
+}
+```
+
+Esto viola el DIP porque el módulo de alto nivel (`PaymentProcessor`) depende de un detalle de implementación (`CreditCardPayment`) en lugar de una abstracción.
+
+#### Solución Implementada
+Introdujimos una interfaz `PaymentMethod` como abstracción, permitiendo que `PaymentProcessor` dependa de ella en lugar de implementaciones concretas:
+
+**Antes (viola DIP):**
+```
+PaymentProcessor (alto nivel)
+└── depende de → CreditCardPayment (bajo nivel, concreto)
+```
+
+**Después (cumple DIP):**
+```
+PaymentMethod (abstracción/interfaz)
+├── CreditCardPaymentRefactored (detalle)
+├── PayPalPayment (detalle)
+└── CryptoPayment (detalle)
+
+PaymentProcessorRefactored (alto nivel)
+└── depende de → PaymentMethod (abstracción)
+```
+
+#### Beneficios Obtenidos
+1. **Bajo acoplamiento**: `PaymentProcessor` no conoce las implementaciones concretas
+2. **Flexibilidad**: Se pueden agregar nuevos métodos de pago sin modificar el procesador
+3. **Testabilidad**: Es fácil crear mocks o implementaciones de prueba
+4. **Inyección de dependencias**: Las dependencias se pasan por constructor, no se crean internamente
+5. **Principio Abierto/Cerrado**: Se puede extender con nuevos métodos de pago sin modificar código existente
+
+#### Reflexión
+El DIP es quizás el principio más transformador de SOLID porque cambia fundamentalmente cómo pensamos sobre las dependencias. En lugar de que las clases de alto nivel creen sus propias dependencias (acoplamiento fuerte), las reciben a través de abstracciones (desacoplamiento).
+
+La clave del DIP es entender que las abstracciones deben diseñarse primero, pensando en lo que el módulo de alto nivel necesita, no en lo que los módulos de bajo nivel ofrecen. En nuestro caso, `PaymentMethod` define el contrato que cualquier método de pago debe cumplir, independientemente de cómo lo implemente.
+
+Este principio está estrechamente relacionado con la Inyección de Dependencias (DI), que es la técnica que permite cumplir el DIP. En frameworks modernos como Spring, DI se realiza automáticamente, pero entender el principio subyacente es fundamental para diseñar sistemas mantenibles.
+
+El DIP es esencial para construir sistemas modulares donde los componentes pueden ser reemplazados, extendidos y probados de forma independiente.
+
+---
+
 ## Comandos de Ejecución y Pruebas
 
 ### Compilación
@@ -313,6 +374,20 @@ mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.isp.
 mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.isp.MainRefactored"
 ```
 *Nota: Todos los dispositivos funcionan correctamente sin excepciones. Teléfono y laptop se cargan, cámara desechable solo se enciende/apaga.*
+
+### Principio DIP (Dependency Inversion Principle)
+
+**Código inicial (viola DIP):**
+```bash
+mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.dip.Main"
+```
+*Nota: Este código solo permite pagos con tarjeta de crédito. PaymentProcessor depende directamente de CreditCardPayment.*
+
+**Código refactorizado (cumple DIP):**
+```bash
+mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.dip.MainRefactored"
+```
+*Nota: PaymentProcessor acepta cualquier método de pago (tarjeta de crédito, PayPal, Crypto). Se pueden agregar nuevos métodos sin modificar el código existente.*
 
 ---
 
