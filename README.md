@@ -182,6 +182,72 @@ El LSP es esencial para construir jerarquías de clases robustas donde el polimo
 
 ---
 
+### I - Interface Segregation Principle (ISP)
+
+#### Definición
+"Una clase no debe ser forzada a implementar interfaces que no utiliza."
+
+El ISP promueve la creación de interfaces específicas y cohesivas en lugar de interfaces grandes y generales, asegurando que las clases solo dependan de los métodos que realmente necesitan.
+
+#### Problema Identificado
+La interfaz `Device` definía tres métodos (`turnOn()`, `turnOff()`, `charge()`) que todas las implementaciones debían cumplir. Sin embargo, `DisposableCamera` no puede cargarse, lo que generaba una excepción:
+
+```java
+class DisposableCamera implements Device {
+    @Override
+    public void charge() {
+        throw new UnsupportedOperationException("Disposable cameras cannot be charged.");
+    }
+}
+```
+
+Esto viola el ISP porque `DisposableCamera` está obligada a implementar un método (`charge()`) que no tiene sentido para ella.
+
+#### Solución Implementada
+Dividimos la interfaz `Device` en interfaces más pequeñas y específicas:
+
+**Antes (viola ISP):**
+```
+Device (interfaz)
+├── turnOn()
+├── turnOff()
+└── charge()
+    ├── Phone → implementa todo
+    └── DisposableCamera → charge() lanza excepción
+```
+
+**Después (cumple ISP):**
+```
+Switchable (interfaz)
+├── turnOn()
+└── turnOff()
+
+Chargeable (interfaz)
+└── charge()
+
+PhoneRefactored        → Switchable + Chargeable
+DisposableCameraRefactored → solo Switchable
+LaptopRefactored       → Switchable + Chargeable
+```
+
+#### Beneficios Obtenidos
+1. **Sin métodos forzados**: Las clases solo implementan lo que realmente necesitan
+2. **Sin excepciones en tiempo de ejecución**: No hay métodos que lancen `UnsupportedOperationException`
+3. **Interfaces cohesivas**: Cada interfaz tiene un propósito claro y específico
+4. **Composición flexible**: Los dispositivos eligen qué interfaces implementar según sus capacidades
+5. **Polimorfismo seguro**: Los arrays de `Switchable` o `Chargeable` solo contienen dispositivos que realmente pueden realizar esa acción
+
+#### Reflexión
+El ISP nos enseña que las interfaces grandes y generales son perjudiciales para el diseño. Cuando una interfaz crece demasiado, termina forzando a las clases a implementar comportamientos que no les corresponden.
+
+La solución no fue eliminar el método `charge()` de `DisposableCamera` de alguna manera artificial, sino replantear la abstracción. En lugar de una interfaz monolítica `Device`, creamos interfaces de capacidad (`Switchable`, `Chargeable`) que cada dispositivo implementa según sus características reales.
+
+Este principio está estrechamente relacionado con el LSP: ambos buscan evitar que las clases se vean forzadas a cumplir contratos que no pueden respetar. Mientras el LSP se enfoca en la sustituibilidad de clases, el ISP se enfoca en la segregación de interfaces.
+
+El ISP es esencial para construir sistemas flexibles donde las interfaces sean mínimas y cohesivas, facilitando la implementación y el mantenimiento.
+
+---
+
 ## Comandos de Ejecución y Pruebas
 
 ### Compilación
@@ -233,6 +299,20 @@ mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.lsp.
 mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.lsp.MainRefactored"
 ```
 *Nota: Todos los animales funcionan correctamente sin excepciones. Perro camina y nada, pez solo nada, pájaro solo camina.*
+
+### Principio ISP (Interface Segregation Principle)
+
+**Código inicial (viola ISP):**
+```bash
+mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.isp.Main"
+```
+*Nota: Este código lanza una excepción `UnsupportedOperationException` cuando se intenta cargar una cámara desechable.*
+
+**Código refactorizado (cumple ISP):**
+```bash
+mvn compile exec:java "-Dexec.mainClass=edu.udla.calidad.srpsolidprinciples.isp.MainRefactored"
+```
+*Nota: Todos los dispositivos funcionan correctamente sin excepciones. Teléfono y laptop se cargan, cámara desechable solo se enciende/apaga.*
 
 ---
 
